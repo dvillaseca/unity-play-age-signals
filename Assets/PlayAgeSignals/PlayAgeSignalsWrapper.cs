@@ -176,6 +176,8 @@ namespace TinyBytes.PlayAgeSignals
 			AgeSignalsErrorCode.PLAY_STORE_VERSION_OUTDATED => true,
 			AgeSignalsErrorCode.PLAY_SERVICES_VERSION_OUTDATED => true,
 			AgeSignalsErrorCode.CLIENT_TRANSIENT_ERROR => true,
+			AgeSignalsErrorCode.APP_NOT_OWNED => false,
+			AgeSignalsErrorCode.INTERNAL_ERROR => true,
 			_ => false
 		};
 	}
