@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "displayName": "Play Age Signals",
   "description": "Unity wrapper for Play Age Signals API.",
+  "license": "GPL-3.0",
   "unity": "2020.3",
   "documentationUrl": "",
   "changelogUrl": "",

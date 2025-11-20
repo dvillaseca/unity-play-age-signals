@@ -118,5 +118,5 @@ _ageSignalsWrapper.Initialize(OnSuccess, OnError, testData);
 
 ## License
 
-[MIT](LICENSE)
+[GPL-3.0](LICENSE)
 
