@@ -61,15 +61,35 @@ public class PlayAgeSignalsUnityWrapper {
                         try {
                             JSONObject json = new JSONObject();
                             // Get raw values safely
-                            json.put("userStatus", result.userStatus());
-                            json.put("ageLower", result.ageLower());
-                            json.put("ageUpper", result.ageUpper());
+                            
+                            // userStatus can be null (empty) if the user is not in an affected region
+                            // We map this to 5 (NOT_APPLICABLE) for Unity
+                            Object userStatus = result.userStatus();
+                            if (userStatus == null) {
+                                json.put("userStatus", 5);
+                            } else {
+                                json.put("userStatus", userStatus);
+                            }
+
+                            Object ageLower = result.ageLower();
+                            if (ageLower == null) {
+                                json.put("ageLower", -1);
+                            } else {
+                                json.put("ageLower", ageLower);
+                            }
+
+                            Object ageUpper = result.ageUpper();
+                            if (ageUpper == null) {
+                                json.put("ageUpper", -1);
+                            } else {
+                                json.put("ageUpper", ageUpper);
+                            }
 
                             Date date = result.mostRecentApprovalDate();
                             if (date != null) {
-                                json.put("mostRecentApprovalDate", date.toString());
+                                json.put("mostRecentApprovalDate", date.getTime());
                             } else {
-                                json.put("mostRecentApprovalDate", JSONObject.NULL);
+                                json.put("mostRecentApprovalDate", 0);
                             }
 
                             String installId = result.installId();

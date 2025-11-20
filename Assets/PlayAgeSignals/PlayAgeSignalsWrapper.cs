@@ -133,21 +133,21 @@ namespace TinyBytes.PlayAgeSignals
 		public int ageLower;
 		public int ageUpper;
 		public string installId;
-		public string mostRecentApprovalDate;
+		public long mostRecentApprovalDate;
 
 		public DateTime MostRecentApprovalDate
 		{
 			get
 			{
-				if (DateTime.TryParse(mostRecentApprovalDate, out DateTime dt))
+				if (mostRecentApprovalDate > 0)
 				{
-					return dt;
+					return DateTimeOffset.FromUnixTimeMilliseconds(mostRecentApprovalDate).DateTime.ToLocalTime();
 				}
 				return DateTime.MinValue;
 			}
 			set
 			{
-				mostRecentApprovalDate = value.ToString("o"); // ISO 8601 format
+				mostRecentApprovalDate = new DateTimeOffset(value).ToUnixTimeMilliseconds();
 			}
 		}
 
@@ -157,6 +157,8 @@ namespace TinyBytes.PlayAgeSignals
 		public bool IsVerified => userStatus == AgeSignalsVerificationStatus.VERIFIED;
 
 		public bool IsUnverified => userStatus == AgeSignalsVerificationStatus.UNKNOWN;
+
+		public bool IsNotApplicable => userStatus == AgeSignalsVerificationStatus.NOT_APPLICABLE;
 	}
 
 	[Serializable]
@@ -185,7 +187,8 @@ namespace TinyBytes.PlayAgeSignals
 		SUPERVISED = 1,
 		SUPERVISED_APPROVAL_PENDING = 2,
 		SUPERVISED_APPROVAL_DENIED = 3,
-		UNKNOWN = 4
+		UNKNOWN = 4,
+		NOT_APPLICABLE = 5
 	}
 
 	public enum AgeSignalsErrorCode
