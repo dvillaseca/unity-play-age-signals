@@ -20,28 +20,27 @@ A Unity wrapper for the [Google Play Age Signals API](https://developer.android.
 
 ## Usage
 
-The main entry point is the `PlayAgeSignalsWrapper` class.
+The main entry point is the `PlayAgeSignalsWrapper` static class.
 
-### 1. Initialize and Request Signals
+### 1. Request Signals
 
-Create an instance of the wrapper and call `Initialize`. You must provide success and error callbacks.
+Call `PlayAgeSignalsWrapper.Request`. You must provide success and error callbacks.
+
+**Important:** The callbacks might be invoked on a background thread. If you need to interact with the Unity API (e.g., update UI), ensure you dispatch to the main thread.
 
 ```csharp
 using TinyBytes.PlayAgeSignals;
 
 public class MyAgeVerifier : MonoBehaviour
 {
-    private PlayAgeSignalsWrapper _ageSignalsWrapper;
-
     void Start()
     {
-        _ageSignalsWrapper = new PlayAgeSignalsWrapper();
         RequestAgeInfo();
     }
 
     public void RequestAgeInfo()
     {
-        _ageSignalsWrapper.Initialize(
+        PlayAgeSignalsWrapper.Request(
             OnSuccess, 
             OnError
             // Optional: Pass test data here for Editor/testing
@@ -58,6 +57,9 @@ The success callback receives `AgeSignalsResultData`.
 ```csharp
 private void OnSuccess(AgeSignalsResultData result)
 {
+    // WARNING: This might be on a background thread.
+    // Use a dispatcher if you need to touch Unity objects.
+
     Debug.Log($"User Status: {result.userStatus}");
     
     if (result.IsVerified)
@@ -80,6 +82,8 @@ The error callback receives `AgeSignalsError`.
 ```csharp
 private void OnError(AgeSignalsError error)
 {
+    // WARNING: This might be on a background thread.
+
     Debug.LogError($"Error {error.errorCode}: {error.message}");
 
     if (error.IsRetryable)
@@ -103,7 +107,7 @@ private void OnError(AgeSignalsError error)
 
 ## Testing
 
-You can test the integration in the Unity Editor or on a device by passing `AgeSignalsResultData` as the third argument to `Initialize`.
+You can test the integration in the Unity Editor or on a device by passing `AgeSignalsResultData` as the third argument to `Request`.
 
 ```csharp
 var testData = new AgeSignalsResultData
@@ -113,7 +117,7 @@ var testData = new AgeSignalsResultData
     ageUpper = 18
 };
 
-_ageSignalsWrapper.Initialize(OnSuccess, OnError, testData);
+PlayAgeSignalsWrapper.Request(OnSuccess, OnError, testData);
 ```
 
 ## License

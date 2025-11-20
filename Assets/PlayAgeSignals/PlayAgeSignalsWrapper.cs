@@ -3,14 +3,29 @@ using UnityEngine;
 
 namespace TinyBytes.PlayAgeSignals
 {
-	public class PlayAgeSignalsWrapper
+	public static class PlayAgeSignalsWrapper
 	{
 #if UNITY_ANDROID
-		private AndroidJavaObject javaWrapper;
 		// Updated to match the Java package name
 		private const string WRAPPER_CLASS = "com.tinybytes.playagesignals.PlayAgeSignalsUnityWrapper";
 #endif
-		public void Initialize(Action<AgeSignalsResultData> onSuccess, Action<AgeSignalsError> onError, AgeSignalsResultData? testResponse = null)
+		/// <summary>
+		/// Requests the age signals.
+		/// </summary>
+		/// <param name="onSuccess">
+		/// Callback invoked upon successful retrieval of age signals.
+		/// <br/><b>WARNING:</b> This callback might be invoked on a thread other than the Unity main thread.
+		/// Do not perform Unity API calls (e.g., UI updates, accessing GameObjects) directly inside this callback.
+		/// Dispatch to the main thread if necessary.
+		/// </param>
+		/// <param name="onError">
+		/// Callback invoked upon an error.
+		/// <br/><b>WARNING:</b> This callback might be invoked on a thread other than the Unity main thread.
+		/// Do not perform Unity API calls (e.g., UI updates, accessing GameObjects) directly inside this callback.
+		/// Dispatch to the main thread if necessary.
+		/// </param>
+		/// <param name="testResponse">Optional test response to mock the underlying service response.</param>
+		public static void Request(Action<AgeSignalsResultData> onSuccess, Action<AgeSignalsError> onError, AgeSignalsResultData? testResponse = null)
 		{
 #if UNITY_ANDROID && !UNITY_EDITOR
 			try
@@ -19,7 +34,7 @@ namespace TinyBytes.PlayAgeSignals
 				AndroidJavaObject currentActivity = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity");
 				AndroidJavaObject context = currentActivity.Call<AndroidJavaObject>("getApplicationContext");
 
-				javaWrapper = new AndroidJavaObject(WRAPPER_CLASS, context, testResponse.HasValue);
+				AndroidJavaObject javaWrapper = new AndroidJavaObject(WRAPPER_CLASS, context, testResponse.HasValue);
 
 				if (testResponse.HasValue)
 				{
@@ -33,30 +48,6 @@ namespace TinyBytes.PlayAgeSignals
 					javaWrapper.Call("setTestResponse", (int)data.userStatus, data.ageLower, data.ageUpper, data.installId, dateMillis);
 				}
 
-				RequestAgeSignals(onSuccess, onError);
-			}
-			catch (Exception e)
-			{
-				onError?.Invoke(new AgeSignalsError
-				{
-					errorCode = AgeSignalsErrorCode.INTERNAL_ERROR,
-					message = $"Initialization failed: {e.Message}"
-				});
-			}
-#else
-			onError?.Invoke(new AgeSignalsError
-			{
-				errorCode = AgeSignalsErrorCode.INTERNAL_ERROR,
-				message = "Play Age Signals API is only available on Android devices"
-			});
-#endif
-		}
-
-		private void RequestAgeSignals(Action<AgeSignalsResultData> onSuccess, Action<AgeSignalsError> onError)
-		{
-#if UNITY_ANDROID
-			try
-			{
 				javaWrapper.Call("requestAgeSignals", new AgeSignalsCallbackProxy(
 					jsonResult =>
 					{
@@ -81,18 +72,24 @@ namespace TinyBytes.PlayAgeSignals
 							errorCode = (AgeSignalsErrorCode)errorCode,
 							message = message
 						});
-					}
+					},
+					javaWrapper
 				));
 			}
 			catch (Exception e)
 			{
-				Debug.LogException(e);
 				onError?.Invoke(new AgeSignalsError
 				{
 					errorCode = AgeSignalsErrorCode.INTERNAL_ERROR,
 					message = $"Request failed: {e.Message}"
 				});
 			}
+#else
+			onError?.Invoke(new AgeSignalsError
+			{
+				errorCode = AgeSignalsErrorCode.INTERNAL_ERROR,
+				message = "Play Age Signals API is only available on Android devices"
+			});
 #endif
 		}
 
@@ -101,12 +98,14 @@ namespace TinyBytes.PlayAgeSignals
 		{
 			private Action<string> onSuccessAction;
 			private Action<int, string> onErrorAction;
+			private AndroidJavaObject keeper; //this is for keeping the class alive and avoid the GC to collect it
 
-			public AgeSignalsCallbackProxy(Action<string> onSuccess, Action<int, string> onError)
+			public AgeSignalsCallbackProxy(Action<string> onSuccess, Action<int, string> onError, AndroidJavaObject keeper)
 				: base("com.tinybytes.playagesignals.PlayAgeSignalsUnityWrapper$AgeSignalsCallback")
 			{
 				this.onSuccessAction = onSuccess;
 				this.onErrorAction = onError;
+				this.keeper = keeper;
 			}
 
 			public void onSuccess(string jsonResult)
@@ -205,4 +204,3 @@ namespace TinyBytes.PlayAgeSignals
 		INTERNAL_ERROR = -100
 	}
 }
-

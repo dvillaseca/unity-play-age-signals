@@ -5,19 +5,17 @@ namespace TinyBytes.PlayAgeSignals
 {
     public class PlayAgeSignalsExample : MonoBehaviour
     {
-        private PlayAgeSignalsWrapper ageSignalsWrapper;
         private int retryCount = 0;
         private const int MAX_RETRIES = 3;
 
         private void Start()
         {
-            ageSignalsWrapper = new PlayAgeSignalsWrapper();
             RequestAgeSignals();
         }
 
         private void RequestAgeSignals()
         {
-            ageSignalsWrapper.Initialize(OnAgeSignalsSuccess, OnAgeSignalsError, new AgeSignalsResultData()
+            PlayAgeSignalsWrapper.Request(OnAgeSignalsSuccess, OnAgeSignalsError, new AgeSignalsResultData()
             {
                 ageLower = 13,
                 ageUpper = 18,
@@ -99,4 +97,3 @@ namespace TinyBytes.PlayAgeSignals
         }
     }
 }
-
