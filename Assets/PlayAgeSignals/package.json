@@ -1,0 +1,22 @@
+{
+  "name": "com.tinybytes.playagesignals",
+  "version": "1.0.0",
+  "displayName": "Play Age Signals",
+  "description": "Unity wrapper for Play Age Signals API.",
+  "unity": "2020.3",
+  "documentationUrl": "",
+  "changelogUrl": "",
+  "licensesUrl": "",
+  "keywords": [
+    "android",
+    "play-store",
+    "age-signals"
+  ],
+  "author": {
+    "name": "TinyBytes",
+    "email": "",
+    "url": ""
+  },
+  "dependencies": {}
+}
+
