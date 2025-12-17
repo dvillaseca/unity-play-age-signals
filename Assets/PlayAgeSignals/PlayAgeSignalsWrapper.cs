@@ -85,11 +85,18 @@ namespace TinyBytes.PlayAgeSignals
 				});
 			}
 #else
-			onError?.Invoke(new AgeSignalsError
+			if (testResponse.HasValue)
 			{
-				errorCode = AgeSignalsErrorCode.INTERNAL_ERROR,
-				message = "Play Age Signals API is only available on Android devices"
-			});
+				onSuccess?.Invoke(testResponse.Value);
+			}
+			else
+			{
+				onError?.Invoke(new AgeSignalsError
+				{
+					errorCode = AgeSignalsErrorCode.INTERNAL_ERROR,
+					message = "Play Age Signals API is only available on Android devices"
+				});
+			}
 #endif
 		}
 
@@ -125,84 +132,84 @@ namespace TinyBytes.PlayAgeSignals
 #endif
 	}
 
-	[Serializable]
-	public struct AgeSignalsResultData
-	{
-		public AgeSignalsVerificationStatus userStatus;
-		public int ageLower;
-		public int ageUpper;
-		public string installId;
-		public long mostRecentApprovalDate;
-
-		public DateTime MostRecentApprovalDate
+		[Serializable]
+		public struct AgeSignalsResultData
 		{
-			get
+			public AgeSignalsVerificationStatus userStatus;
+			public int ageLower;
+			public int ageUpper;
+			public string installId;
+			public long mostRecentApprovalDate;
+
+			public DateTime MostRecentApprovalDate
 			{
-				if (mostRecentApprovalDate > 0)
+				get
 				{
-					return DateTimeOffset.FromUnixTimeMilliseconds(mostRecentApprovalDate).DateTime.ToLocalTime();
+					if (mostRecentApprovalDate > 0)
+					{
+						return DateTimeOffset.FromUnixTimeMilliseconds(mostRecentApprovalDate).DateTime.ToLocalTime();
+					}
+					return DateTime.MinValue;
 				}
-				return DateTime.MinValue;
+				set
+				{
+					mostRecentApprovalDate = new DateTimeOffset(value).ToUnixTimeMilliseconds();
+				}
 			}
-			set
-			{
-				mostRecentApprovalDate = new DateTimeOffset(value).ToUnixTimeMilliseconds();
-			}
+
+			public bool IsSupervised => userStatus == AgeSignalsVerificationStatus.SUPERVISED ||
+										userStatus == AgeSignalsVerificationStatus.SUPERVISED_APPROVAL_PENDING;
+
+			public bool IsVerified => userStatus == AgeSignalsVerificationStatus.VERIFIED;
+
+			public bool IsUnverified => userStatus == AgeSignalsVerificationStatus.UNKNOWN;
+
+			public bool IsNotApplicable => userStatus == AgeSignalsVerificationStatus.NOT_APPLICABLE;
 		}
 
-		public bool IsSupervised => userStatus == AgeSignalsVerificationStatus.SUPERVISED ||
-									userStatus == AgeSignalsVerificationStatus.SUPERVISED_APPROVAL_PENDING;
-
-		public bool IsVerified => userStatus == AgeSignalsVerificationStatus.VERIFIED;
-
-		public bool IsUnverified => userStatus == AgeSignalsVerificationStatus.UNKNOWN;
-
-		public bool IsNotApplicable => userStatus == AgeSignalsVerificationStatus.NOT_APPLICABLE;
-	}
-
-	[Serializable]
-	public struct AgeSignalsError
-	{
-		public AgeSignalsErrorCode errorCode;
-		public string message;
-
-		public bool IsRetryable => errorCode switch
+		[Serializable]
+		public struct AgeSignalsError
 		{
-			AgeSignalsErrorCode.API_NOT_AVAILABLE => true,
-			AgeSignalsErrorCode.PLAY_STORE_NOT_FOUND => true,
-			AgeSignalsErrorCode.NETWORK_ERROR => true,
-			AgeSignalsErrorCode.PLAY_SERVICES_NOT_FOUND => true,
-			AgeSignalsErrorCode.CANNOT_BIND_TO_SERVICE => true,
-			AgeSignalsErrorCode.PLAY_STORE_VERSION_OUTDATED => true,
-			AgeSignalsErrorCode.PLAY_SERVICES_VERSION_OUTDATED => true,
-			AgeSignalsErrorCode.CLIENT_TRANSIENT_ERROR => true,
-			AgeSignalsErrorCode.APP_NOT_OWNED => false,
-			AgeSignalsErrorCode.INTERNAL_ERROR => true,
-			_ => false
-		};
-	}
+			public AgeSignalsErrorCode errorCode;
+			public string message;
 
-	public enum AgeSignalsVerificationStatus
-	{
-		VERIFIED = 0,
-		SUPERVISED = 1,
-		SUPERVISED_APPROVAL_PENDING = 2,
-		SUPERVISED_APPROVAL_DENIED = 3,
-		UNKNOWN = 4,
-		NOT_APPLICABLE = 5
-	}
+			public bool IsRetryable => errorCode switch
+			{
+				AgeSignalsErrorCode.API_NOT_AVAILABLE => true,
+				AgeSignalsErrorCode.PLAY_STORE_NOT_FOUND => true,
+				AgeSignalsErrorCode.NETWORK_ERROR => true,
+				AgeSignalsErrorCode.PLAY_SERVICES_NOT_FOUND => true,
+				AgeSignalsErrorCode.CANNOT_BIND_TO_SERVICE => true,
+				AgeSignalsErrorCode.PLAY_STORE_VERSION_OUTDATED => true,
+				AgeSignalsErrorCode.PLAY_SERVICES_VERSION_OUTDATED => true,
+				AgeSignalsErrorCode.CLIENT_TRANSIENT_ERROR => true,
+				AgeSignalsErrorCode.APP_NOT_OWNED => false,
+				AgeSignalsErrorCode.INTERNAL_ERROR => true,
+				_ => false
+			};
+		}
 
-	public enum AgeSignalsErrorCode
-	{
-		API_NOT_AVAILABLE = -1,
-		PLAY_STORE_NOT_FOUND = -2,
-		NETWORK_ERROR = -3,
-		PLAY_SERVICES_NOT_FOUND = -4,
-		CANNOT_BIND_TO_SERVICE = -5,
-		PLAY_STORE_VERSION_OUTDATED = -6,
-		PLAY_SERVICES_VERSION_OUTDATED = -7,
-		CLIENT_TRANSIENT_ERROR = -8,
-		APP_NOT_OWNED = -9,
-		INTERNAL_ERROR = -100
+		public enum AgeSignalsVerificationStatus
+		{
+			VERIFIED = 0,
+			SUPERVISED = 1,
+			SUPERVISED_APPROVAL_PENDING = 2,
+			SUPERVISED_APPROVAL_DENIED = 3,
+			UNKNOWN = 4,
+			NOT_APPLICABLE = 5
+		}
+
+		public enum AgeSignalsErrorCode
+		{
+			API_NOT_AVAILABLE = -1,
+			PLAY_STORE_NOT_FOUND = -2,
+			NETWORK_ERROR = -3,
+			PLAY_SERVICES_NOT_FOUND = -4,
+			CANNOT_BIND_TO_SERVICE = -5,
+			PLAY_STORE_VERSION_OUTDATED = -6,
+			PLAY_SERVICES_VERSION_OUTDATED = -7,
+			CLIENT_TRANSIENT_ERROR = -8,
+			APP_NOT_OWNED = -9,
+			INTERNAL_ERROR = -100
+		}
 	}
-}
