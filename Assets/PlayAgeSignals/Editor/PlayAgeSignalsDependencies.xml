@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <dependencies>
   <androidPackages>
-    <androidPackage spec="com.google.android.play:age-signals:0.0.1-beta02" />
+    <androidPackage spec="com.google.android.play:age-signals:0.0.2" />
   </androidPackages>
 </dependencies>
 

@@ -4,7 +4,7 @@ apply plugin: 'com.android.library'
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 // Android Resolver Dependencies Start
-    implementation 'com.google.android.play:age-signals:0.0.1-beta02' // Assets/PlayAgeSignals/Editor/PlayAgeSignalsDependencies.xml:4
+    implementation 'com.google.android.play:age-signals:0.0.2' // Assets/PlayAgeSignals/Editor/PlayAgeSignalsDependencies.xml:4
 // Android Resolver Dependencies End
 **DEPS**}
 
